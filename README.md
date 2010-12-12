@@ -23,4 +23,5 @@ Get a subfolder of the current folder. If create is true and the folder does not
 exist, create it.
 
 `func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error)`
+
 Write a mail to the maildir folder. The data is not encoded or compressed in any way.
