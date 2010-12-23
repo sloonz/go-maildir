@@ -78,10 +78,10 @@ func TestEncode(t *testing.T) {
 			t.Errorf("Can't create sub-maildir %v: %v", testData.decoded, err)
 			continue
 		}
-		if child.path != "_obj/Maildir/."+testData.encoded {
+		if child.Path != "_obj/Maildir/."+testData.encoded {
 			t.Logf("Sub-maildir %v has an invalid path", testData.decoded)
 			t.Logf(" Expected result: %s", "_obj/Maildir/."+testData.encoded)
-			t.Logf("   Actual result: %s", child.path)
+			t.Logf("   Actual result: %s", child.Path)
 			t.Fail()
 			continue
 		}
@@ -100,10 +100,10 @@ func TestEncode(t *testing.T) {
 		return
 	}
 
-	if child.path != "_obj/Maildir/.foo.bar" {
+	if child.Path != "_obj/Maildir/.foo.bar" {
 		t.Logf("Sub-maildir %v has an invalid path", "foo/bar")
 		t.Logf(" Expected result: %s", "_obj/Maildir/.foo.bar")
-		t.Logf("   Actual result: %s", child.path)
+		t.Logf("   Actual result: %s", child.Path)
 		t.Fail()
 	}
 }

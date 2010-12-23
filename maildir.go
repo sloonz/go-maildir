@@ -78,7 +78,7 @@ func New(path string, create bool) (m *Maildir, err os.Error) {
 // exist, create it.
 func (m *Maildir) Child(name string, create bool) (*Maildir, os.Error) {
 	var i int
-	encodedPath := bytes.NewBufferString(m.path + ".")
+	encodedPath := bytes.NewBufferString(m.Path + ".")
 	for i = nextInvalidChar(name); i < len(name); i = nextInvalidChar(name) {
 		encodedPath.WriteString(name[:i])
 		j := nextValidChar(name[i:])
@@ -101,7 +101,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error) {
 	}
 
 	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Seconds(), time.Nanoseconds()/1000, os.Getpid(), <-counter, hostname)
-	tmpname := paths.Join(m.path, "tmp", basename)
+	tmpname := paths.Join(m.Path, "tmp", basename)
 	file, err := os.Open(tmpname, os.O_WRONLY | os.O_CREAT, 0664)
 	if err != nil {
 		return "", err
@@ -113,7 +113,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error) {
 		return "", err
 	}
 
-	newname := paths.Join(m.path, "new", fmt.Sprintf("%v,S=%v", basename, size))
+	newname := paths.Join(m.Path, "new", fmt.Sprintf("%v,S=%v", basename, size))
 	err = os.Rename(tmpname, newname)
 	if err != nil {
 		os.Remove(tmpname)
