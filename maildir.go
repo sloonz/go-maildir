@@ -125,11 +125,10 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error) {
 
 // Valid (valid = has not to be escaped) chars = 
 // ASCII 32-127 + "&" + "/" + "."
-// We disallow 32 (space) for obvious reasons (avoid to create folders with spaces into their names)
 // We disallow 127 because the spec is ambiguous here: it allows 127 but not control characters,
 // and 127 is a control character.
 func isValidChar(b byte) bool {
-	if b <= 0x20 || b >= 127 {
+	if b < 0x20 || b >= 127 {
 		return false
 	}
 	if b == byte('.') || b == byte('/') || b == byte('&') {

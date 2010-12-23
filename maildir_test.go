@@ -20,6 +20,7 @@ var encodingTests = []encodingTestData{
 	{"A./B", "A&AC4ALw-B"},                                // "." and "/" are special
 	{"Lesson:日本語", "Lesson:&ZeVnLIqe-"},                // long sequence of characters
 	{"Résumé&Écritures", "R&AOk-sum&AOk-&-&AMk-critures"}, // "&" in the middle of a sequence of special characters
+	{"Hello world", "Hello world"},                        // spaces are not encoded
 }
 
 func TestCreate(t *testing.T) {
