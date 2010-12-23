@@ -26,8 +26,8 @@ var counterInit sync.Once
 // Represent a folder in a maildir. The root folder is usually the Inbox.
 type Maildir struct {
 	// The root path ends with a /, others don't, so we can have 
-	// the child of a maildir just with path + "." + encodedChildName
-	path string
+	// the child of a maildir just with path + "." + encodedChildName.
+	Path string
 }
 
 func newWithRawPath(path string, create bool) (m *Maildir, err os.Error) {

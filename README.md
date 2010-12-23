@@ -8,9 +8,11 @@ the specification located at http://www.courier-mta.org/maildir.html
 
 # TYPES
 
-	type Maildir struct {
-		// contains unexported fields
-	}
+       type Maildir struct {
+           // The root path ends with a /, others don't, so we can have 
+           // the child of a maildir just with path + "." + encodedChildName.
+           Path string
+       }
 Represent a folder in a maildir. The root folder is usually the Inbox.
 
 `func New(path string, create bool) (m *Maildir, err os.Error)`
