@@ -18,7 +18,7 @@ var encodingTests = []encodingTestData{
 	{"&2[foo]", "&-2[foo]"},                               // Folder name starting with a special character
 	{"foo&", "foo&-"},                                     // Folder name ending with a special character
 	{"A./B", "A&AC4ALw-B"},                                // "." and "/" are special
-	{"Lesson:日本語", "Lesson:&ZeVnLIqe-"},                // long sequence of characters
+	{"Lesson:日本語", "Lesson:&ZeVnLIqe-"},                   // long sequence of characters
 	{"Résumé&Écritures", "R&AOk-sum&AOk-&-&AMk-critures"}, // "&" in the middle of a sequence of special characters
 	{"Hello world", "Hello world"},                        // spaces are not encoded
 }
@@ -110,7 +110,7 @@ func TestEncode(t *testing.T) {
 }
 
 func readdirnames(dir string) ([]string, os.Error) {
-	d, err := os.Open(dir, os.O_RDONLY, 0)
+	d, err := os.Open(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func TestWrite(t *testing.T) {
 		t.Errorf("Expected one element in new/, got %v", names)
 	}
 
-	f, err := os.Open(fullName, os.O_RDONLY, 0)
+	f, err := os.Open(fullName)
 	if err != nil {
 		t.Errorf("Can't open %v: %v", fullName, err)
 		return

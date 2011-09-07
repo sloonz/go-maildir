@@ -67,9 +67,9 @@ func newWithRawPath(path string, create bool) (m *Maildir, err os.Error) {
 func New(path string, create bool) (m *Maildir, err os.Error) {
 	// Ensure that path is not empty and ends with a /
 	if len(path) == 0 {
-		path = "." + string(paths.DirSeps[0])
-	} else if !strings.Contains(paths.DirSeps, string(path[len(path)-1])) {
-		path += string(paths.DirSeps[0])
+		path = "." + string(os.PathSeparator)
+	} else if !os.IsPathSeparator(path[len(path)-1]) {
+		path += string(os.PathSeparator)
 	}
 	return newWithRawPath(path, create)
 }
@@ -102,7 +102,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error) {
 
 	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Seconds(), time.Nanoseconds()/1000, os.Getpid(), <-counter, hostname)
 	tmpname := paths.Join(m.Path, "tmp", basename)
-	file, err := os.Open(tmpname, os.O_WRONLY | os.O_CREAT, 0664)
+	file, err := os.Create(tmpname)
 	if err != nil {
 		return "", err
 	}
