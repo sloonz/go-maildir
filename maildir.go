@@ -7,16 +7,16 @@
 package maildir
 
 import (
-	"encoding/base64"
 	"bytes"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"os"
+	paths "path"
 	"strings"
 	"sync"
-	"os"
-	"io"
-	"fmt"
 	"time"
-	"utf16"
-	paths "path"
+	"unicode/utf16"
 )
 
 var maildirBase64 = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,")
@@ -30,7 +30,7 @@ type Maildir struct {
 	Path string
 }
 
-func newWithRawPath(path string, create bool) (m *Maildir, err os.Error) {
+func newWithRawPath(path string, create bool) (m *Maildir, err error) {
 	// start counter if needed, preventing race condition
 	counterInit.Do(func() {
 		counter = make(chan uint)
@@ -44,7 +44,7 @@ func newWithRawPath(path string, create bool) (m *Maildir, err os.Error) {
 	// Create if needed
 	_, err = os.Stat(path)
 	if err != nil {
-		if pe, ok := err.(*os.PathError); ok && pe.Error == os.ENOENT && create {
+		if os.IsNotExist(err) && create {
 			err = os.MkdirAll(path, 0775)
 			if err != nil {
 				return nil, err
@@ -64,7 +64,7 @@ func newWithRawPath(path string, create bool) (m *Maildir, err os.Error) {
 }
 
 // Open a maildir. If create is true and the maildir does not exist, create it.
-func New(path string, create bool) (m *Maildir, err os.Error) {
+func New(path string, create bool) (m *Maildir, err error) {
 	// Ensure that path is not empty and ends with a /
 	if len(path) == 0 {
 		path = "." + string(os.PathSeparator)
@@ -76,7 +76,7 @@ func New(path string, create bool) (m *Maildir, err os.Error) {
 
 // Get a subfolder of the current folder. If create is true and the folder does not
 // exist, create it.
-func (m *Maildir) Child(name string, create bool) (*Maildir, os.Error) {
+func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
 	var i int
 	encodedPath := bytes.NewBufferString(m.Path + ".")
 	for i = nextInvalidChar(name); i < len(name); i = nextInvalidChar(name) {
@@ -94,13 +94,13 @@ func (m *Maildir) Child(name string, create bool) (*Maildir, os.Error) {
 }
 
 // Write a mail to the maildir folder. The data is not encoded or compressed in any way.
-func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error) {
+func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return "", err
 	}
 
-	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Seconds(), time.Nanoseconds()/1000, os.Getpid(), <-counter, hostname)
+	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Now().Unix(), time.Now().Nanosecond()/1000, os.Getpid(), <-counter, hostname)
 	tmpname := paths.Join(m.Path, "tmp", basename)
 	file, err := os.Create(tmpname)
 	if err != nil {
@@ -159,7 +159,7 @@ func nextValidChar(s string) int {
 // An encoded sequence is composed of (Python-like pseudo-code):
 // "&" + base64(rawSequence.encode('utf-16-be')).strip('=') + "-"
 func encodeSequence(s string, buf *bytes.Buffer) {
-	utf16data := utf16.Encode([]int(s))
+	utf16data := utf16.Encode([]rune(s))
 	utf16be := make([]byte, len(utf16data)*2)
 	for i := 0; i < len(utf16data); i++ {
 		utf16be[i*2] = byte(utf16data[i] >> 8)

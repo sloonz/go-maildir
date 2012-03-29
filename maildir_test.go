@@ -1,13 +1,13 @@
 package maildir
 
 import (
-	"testing"
-	"fmt"
-	"os"
-	"io/ioutil"
-	"strings"
 	"bytes"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"path"
+	"strings"
+	"testing"
 )
 
 type encodingTestData struct {
@@ -54,7 +54,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Can't open %v of maildir _obj/Maildir: %v", subdir, err)
 			continue
 		}
-		if !fi.IsDirectory() {
+		if !fi.IsDir() {
 			t.Errorf("%v of maildir _obj/Maildir is not a directory", subdir)
 			continue
 		}
@@ -109,7 +109,7 @@ func TestEncode(t *testing.T) {
 	}
 }
 
-func readdirnames(dir string) ([]string, os.Error) {
+func readdirnames(dir string) ([]string, error) {
 	d, err := os.Open(dir)
 	if err != nil {
 		return nil, err
