@@ -25,7 +25,7 @@ var counterInit sync.Once
 
 // Represent a folder in a maildir. The root folder is usually the Inbox.
 type Maildir struct {
-	// The root path ends with a /, others don't, so we can have 
+	// The root path ends with a /, others don't, so we can have
 	// the child of a maildir just with path + "." + encodedChildName.
 	Path string
 }
@@ -123,7 +123,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 	return newname, nil
 }
 
-// Valid (valid = has not to be escaped) chars = 
+// Valid (valid = has not to be escaped) chars =
 // ASCII 32-127 + "&" + "/" + "."
 // We disallow 127 because the spec is ambiguous here: it allows 127 but not control characters,
 // and 127 is a control character.
