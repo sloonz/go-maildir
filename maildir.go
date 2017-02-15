@@ -113,7 +113,6 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 		return "", err
 	}
 
-
 	newname := paths.Join(m.Path, "new", fmt.Sprintf("%v,S=%v", basename, size))
 	err = os.Rename(tmpname, newname)
 	if err != nil {
