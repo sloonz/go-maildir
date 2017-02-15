@@ -102,16 +102,17 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 
 	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Now().Unix(), time.Now().Nanosecond()/1000, os.Getpid(), <-counter, hostname)
 	tmpname := paths.Join(m.Path, "tmp", basename)
-	file, err := os.Create(tmpname)
+	file, err := os.Create(qtmpname)
 	if err != nil {
 		return "", err
 	}
-
+	defer file.Close()
 	size, err := io.Copy(file, data)
 	if err != nil {
 		os.Remove(tmpname)
 		return "", err
 	}
+
 
 	newname := paths.Join(m.Path, "new", fmt.Sprintf("%v,S=%v", basename, size))
 	err = os.Rename(tmpname, newname)
