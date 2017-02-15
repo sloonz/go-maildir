@@ -17,6 +17,16 @@ Represent a folder in a maildir. The root folder is usually the Inbox.
 
 `func New(path string, create bool) (m *Maildir, err os.Error)`
 
+Same as the New function, but with the ability to control permissions.
+perm is an octal used for os.Chmod and what will be applied on files.
+For directories only: an additional chmod +x will be added
+for every r permission in user/group/other to make the directory
+accessible.
+
+uid and gid are for os.Chown, pass DoNotSetOwner constant to ignore.
+
+`NewWithPerm(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error)`
+
 Open a maildir. If create is true and the maildir does not exist, create it.
 
 `func (m *Maildir) Child(name string, create bool) (*Maildir, os.Error)`

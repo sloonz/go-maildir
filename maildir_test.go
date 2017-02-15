@@ -31,7 +31,7 @@ func TestCreate(t *testing.T) {
 	// Opening non-existing maildir
 	md, err := New("_obj/Maildir", false)
 	if md != nil {
-		t.Errorf("I shouldn't be able to open a non-existent maildir")
+		t.Error("I shouldn't be able to open a non-existent maildir")
 		return
 	}
 
@@ -43,7 +43,7 @@ func TestCreate(t *testing.T) {
 		return
 	}
 	if md == nil {
-		t.Errorf("No error, but nil maildir when creating a maildir")
+		t.Error("No error, but nil maildir when creating a maildir")
 		return
 	}
 
@@ -57,6 +57,48 @@ func TestCreate(t *testing.T) {
 		if !fi.IsDir() {
 			t.Errorf("%v of maildir _obj/Maildir is not a directory", subdir)
 			continue
+		}
+	}
+}
+
+func TestCreateWithPerms(t *testing.T) {
+	if err := os.RemoveAll("_obj/Maildir"); err != nil {
+		panic(fmt.Sprintf("Can't remove old test data: %v", err))
+	}
+
+	// Creating new maildir
+	md, err := NewWithPerm("_obj/Maildir", true, 0644, DoNotSetOwner, DoNotSetOwner)
+	defer os.RemoveAll("_obj/Maildir")
+	if err != nil {
+		t.Errorf("Error while creating maildir: %v", err)
+		return
+	}
+	if md == nil {
+		t.Error("No error, but nil maildir when creating a maildir")
+		return
+	}
+	// check correct permissions
+	if fi, statErr := os.Stat("_obj/Maildir"); statErr != nil {
+		t.Error("could not stat _obj/Maildir", statErr)
+	} else if perm := fi.Mode().Perm(); perm != 0755 {
+		t.Errorf("expected permissions of _obj/Maildir 0755, but got %o", perm)
+	}
+
+	// Chek that cur/, tmp/ and new/ have correct perms
+	for _, subdir := range []string{"cur", "tmp", "new"} {
+		fi, err := os.Stat("_obj/Maildir/" + subdir)
+		if err != nil {
+			t.Errorf("Can't open %v of maildir _obj/Maildir: %v", subdir, err)
+			continue
+		}
+		if !fi.IsDir() {
+			t.Errorf("%v of maildir _obj/Maildir is not a directory", subdir)
+			continue
+		}
+
+		// for every r permission for u,g,o it should add an x permission
+		if perm := fi.Mode().Perm(); perm != 0755 {
+			t.Errorf("expected permissions %v of maildir of _obj/Maildir 0755, but got %o", subdir, perm)
 		}
 	}
 }
@@ -128,6 +170,35 @@ func readdirnames(dir string) ([]string, error) {
 	}
 
 	return res, nil
+}
+
+func TestWritePerms(t *testing.T) {
+	if err := os.RemoveAll("_obj/Maildir"); err != nil {
+		panic(fmt.Sprintf("Can't remove old test data: %v", err))
+	}
+
+	maildir, err := NewWithPerm("_obj/Maildir", true, 0644, DoNotSetOwner, DoNotSetOwner)
+	if maildir == nil {
+		t.Errorf("Can't create maildir: %v", err)
+		return
+	}
+	defer os.RemoveAll("_obj/Maildir")
+
+	testData := []byte("Hello, world !")
+	// write a mail
+	fullName, err := maildir.CreateMail(bytes.NewBuffer(testData))
+	if err != nil {
+		t.Errorf("Can't create mail: %v", err)
+	}
+
+	// check perms
+	if fi, err := os.Stat(fullName); err != nil {
+		t.Error("could not stat", fullName)
+	} else {
+		if perm := fi.Mode().Perm(); perm != 0644 {
+			t.Errorf("expected permissions %v  600, 0644 got %o", fullName, perm)
+		}
+	}
 }
 
 func TestWrite(t *testing.T) {
