@@ -102,7 +102,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 
 	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Now().Unix(), time.Now().Nanosecond()/1000, os.Getpid(), <-counter, hostname)
 	tmpname := paths.Join(m.Path, "tmp", basename)
-	file, err := os.Create(qtmpname)
+	file, err := os.Create(tmpname)
 	if err != nil {
 		return "", err
 	}
