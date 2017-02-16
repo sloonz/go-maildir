@@ -194,7 +194,7 @@ func TestWritePerms(t *testing.T) {
 	if fi, err := os.Stat(fullName); err != nil {
 		t.Error("could not stat", fullName)
 	} else {
-		if perm := fi.Mode().Perm(); perm != 064 {
+		if perm := fi.Mode().Perm(); perm != 0644 {
 			t.Errorf("expected permissions %v  600, 0644 got %o", fullName, perm)
 		}
 	}
