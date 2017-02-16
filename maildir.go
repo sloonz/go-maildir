@@ -27,8 +27,8 @@ var counterInit sync.Once
 type Maildir struct {
 	// The root path ends with a /, others don't, so we can have
 	// the child of a maildir just with path + "." + encodedChildName.
-	Path      string
-	perm      os.FileMode
+	Path     string
+	perm     os.FileMode
 	uid, gid int
 }
 
@@ -113,7 +113,7 @@ func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
 		}
 	}
 	encodedPath.WriteString(name)
-	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid,  m.gid)
+	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid, m.gid)
 }
 
 // Write a mail to the maildir folder. The data is not encoded or compressed in any way.
@@ -155,7 +155,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 
 // changeOwner changes the owner of the path
 func changeOwner(path string, uid, gid int) error {
-	if uid >0 && gid > 0 {
+	if uid > 0 && gid > 0 {
 		return os.Chown(path, uid, gid)
 	}
 	return nil
