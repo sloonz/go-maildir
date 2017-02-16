@@ -45,9 +45,8 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 	// replace directory bits with 07, preserve u+g bits
 	dirPerm := perm
 	if perm>>6 != 07 {
-		dirPerm = os.FileMode(0077 & perm | 0700 )
+		dirPerm = os.FileMode(0077&perm | 0700)
 	}
-
 
 	// Create if needed
 	_, err = os.Stat(path)
