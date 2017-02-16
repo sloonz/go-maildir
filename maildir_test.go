@@ -67,7 +67,7 @@ func TestCreateWithPerms(t *testing.T) {
 	}
 
 	// Creating new maildir
-	md, err := NewWithPerm("_obj/Maildir", true, 0644, 0, 0)
+	md, err := NewWithPerm("_obj/Maildir", true, 0644, DoNotSetOwner, DoNotSetOwner)
 	defer os.RemoveAll("_obj/Maildir")
 	if err != nil {
 		t.Errorf("Error while creating maildir: %v", err)
@@ -176,7 +176,7 @@ func TestWritePerms(t *testing.T) {
 		panic(fmt.Sprintf("Can't remove old test data: %v", err))
 	}
 
-	maildir, err := NewWithPerm("_obj/Maildir", true, 0644, 0, 0)
+	maildir, err := NewWithPerm("_obj/Maildir", true, 0644, DoNotSetOwner, DoNotSetOwner)
 	if maildir == nil {
 		t.Errorf("Can't create maildir: %v", err)
 		return

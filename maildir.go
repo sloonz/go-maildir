@@ -32,6 +32,9 @@ type Maildir struct {
 	uid, gid int
 }
 
+const DoNotSetOwner = -1
+const DefaultFilePerm = 0775
+
 func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
 	// start counter if needed, preventing race condition
 	counterInit.Do(func() {
@@ -83,10 +86,13 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 // Open a maildir. If create is true and the maildir does not exist, create it.
 func New(path string, create bool) (m *Maildir, err error) {
 	path = normalizePath(path)
-	return newWithRawPath(path, create, 0775, 0, 0)
+	return newWithRawPath(path, create, DefaultFilePerm, DoNotSetOwner, DoNotSetOwner)
 }
 
 // Same as New, but ability to control permissions
+// perm is an octal used for os.Chmod and what will be used for files
+// for directories, an additional chmod u+x will be applied.
+// uid and gid are for os.Chown, pass DoNotSetOwner constant to ignore.
 func NewWithPerm(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
 	path = normalizePath(path)
 	return newWithRawPath(path, create, perm, uid, gid)
@@ -159,12 +165,13 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 	return newname, nil
 }
 
-// changeOwner changes the owner of the path
+// changeOwner changes the owner of the path.
+// No changes will be made if uid or guid are set to const DoNotSetOwner
 func changeOwner(path string, uid, gid int) error {
-	if uid > 0 && gid > 0 {
-		return os.Chown(path, uid, gid)
+	if uid == DoNotSetOwner || gid == DoNotSetOwner {
+		return nil
 	}
-	return nil
+	return os.Chown(path, uid, gid)
 }
 
 // Valid (valid = has not to be escaped) chars =
