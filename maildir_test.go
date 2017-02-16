@@ -97,7 +97,7 @@ func TestCreateWithPerms(t *testing.T) {
 		}
 
 		if perm := fi.Mode().Perm(); perm != 0744 {
-			t.Errorf("expected permissions %v of maildir of _obj/Maildir 600, but got %o", subdir, perm)
+			t.Errorf("expected permissions %v of maildir of _obj/Maildir 0744, but got %o", subdir, perm)
 		}
 	}
 }
