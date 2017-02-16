@@ -29,10 +29,10 @@ type Maildir struct {
 	// the child of a maildir just with path + "." + encodedChildName.
 	Path      string
 	perm      os.FileMode
-	guid, uid int
+	uid, gid int
 }
 
-func newWithRawPath(path string, create bool, perm os.FileMode, guid, uid int) (m *Maildir, err error) {
+func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
 	// start counter if needed, preventing race condition
 	counterInit.Do(func() {
 		counter = make(chan uint)
@@ -51,7 +51,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, guid, uid int) (
 			if err != nil {
 				return nil, err
 			}
-			err = changeOwner(path, uid, guid)
+			err = changeOwner(path, uid, gid)
 			if err != nil {
 				return nil, err
 			}
@@ -61,7 +61,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, guid, uid int) (
 				if err != nil {
 					return nil, err
 				}
-				err = changeOwner(ps, uid, guid)
+				err = changeOwner(ps, uid, gid)
 				if err != nil {
 					return nil, err
 				}
@@ -72,7 +72,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, guid, uid int) (
 		}
 	}
 
-	return &Maildir{path, perm, guid, uid}, nil
+	return &Maildir{path, perm, uid, gid}, nil
 }
 
 // Open a maildir. If create is true and the maildir does not exist, create it.
@@ -82,9 +82,9 @@ func New(path string, create bool) (m *Maildir, err error) {
 }
 
 // Same as New, but ability to control permissions
-func NewWithPermissions(path string, create bool, perm os.FileMode, uid, guid int) (m *Maildir, err error) {
+func NewWithPermissions(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
 	path = normalizePath(path)
-	return newWithRawPath(path, create, perm, uid, guid)
+	return newWithRawPath(path, create, perm, uid, gid)
 }
 
 // normalizePath ensures that path is not empty and ends with a /
@@ -113,7 +113,7 @@ func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
 		}
 	}
 	encodedPath.WriteString(name)
-	return newWithRawPath(encodedPath.String(), create, m.perm, m.guid, m.uid)
+	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid,  m.gid)
 }
 
 // Write a mail to the maildir folder. The data is not encoded or compressed in any way.
@@ -143,7 +143,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 		return "", err
 	}
 
-	err = changeOwner(tmpname, m.uid, m.guid)
+	err = changeOwner(tmpname, m.gid, m.uid)
 	if err != nil {
 		// don't want to leave files with bad permissions
 		os.Remove(tmpname)
@@ -154,9 +154,9 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 }
 
 // changeOwner changes the owner of the path
-func changeOwner(path string, uid, guid int) error {
-	if uid >0 && guid > 0 {
-		return os.Chown(path, uid, guid)
+func changeOwner(path string, uid, gid int) error {
+	if uid >0 && gid > 0 {
+		return os.Chown(path, uid, gid)
 	}
 	return nil
 }
