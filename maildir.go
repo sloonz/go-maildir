@@ -27,10 +27,12 @@ var counterInit sync.Once
 type Maildir struct {
 	// The root path ends with a /, others don't, so we can have
 	// the child of a maildir just with path + "." + encodedChildName.
-	Path string
+	Path      string
+	perm      os.FileMode
+	guid, uid int
 }
 
-func newWithRawPath(path string, create bool) (m *Maildir, err error) {
+func newWithRawPath(path string, create bool, perm os.FileMode, guid, uid int) (m *Maildir, err error) {
 	// start counter if needed, preventing race condition
 	counterInit.Do(func() {
 		counter = make(chan uint)
@@ -45,33 +47,54 @@ func newWithRawPath(path string, create bool) (m *Maildir, err error) {
 	_, err = os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) && create {
-			err = os.MkdirAll(path, 0775)
+			err = os.MkdirAll(path, perm)
+			if err != nil {
+				return nil, err
+			}
+			err = changeOwner(path, uid, guid)
 			if err != nil {
 				return nil, err
 			}
 			for _, subdir := range []string{"tmp", "cur", "new"} {
-				err = os.Mkdir(paths.Join(path, subdir), 0775)
+				ps := paths.Join(path, subdir)
+				err = os.Mkdir(ps, perm)
 				if err != nil {
 					return nil, err
 				}
+				err = changeOwner(ps, uid, guid)
+				if err != nil {
+					return nil, err
+				}
+
 			}
 		} else {
 			return nil, err
 		}
 	}
 
-	return &Maildir{path}, nil
+	return &Maildir{path, perm, guid, uid}, nil
 }
 
 // Open a maildir. If create is true and the maildir does not exist, create it.
 func New(path string, create bool) (m *Maildir, err error) {
-	// Ensure that path is not empty and ends with a /
-	if len(path) == 0 {
-		path = "." + string(os.PathSeparator)
-	} else if !os.IsPathSeparator(path[len(path)-1]) {
-		path += string(os.PathSeparator)
+	path = normalizePath(path)
+	return newWithRawPath(path, create, 0775, 0, 0)
+}
+
+// Same as New, but ability to control permissions
+func NewWithPermissions(path string, create bool, perm os.FileMode, uid, guid int) (m *Maildir, err error) {
+	path = normalizePath(path)
+	return newWithRawPath(path, create, perm, uid, guid)
+}
+
+// normalizePath ensures that path is not empty and ends with a /
+func normalizePath(p string) string {
+	if len(p) == 0 {
+		p = "." + string(os.PathSeparator)
+	} else if !os.IsPathSeparator(p[len(p)-1]) {
+		p += string(os.PathSeparator)
 	}
-	return newWithRawPath(path, create)
+	return p
 }
 
 // Get a subfolder of the current folder. If create is true and the folder does not
@@ -90,7 +113,7 @@ func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
 		}
 	}
 	encodedPath.WriteString(name)
-	return newWithRawPath(encodedPath.String(), create)
+	return newWithRawPath(encodedPath.String(), create, m.perm, m.guid, m.uid)
 }
 
 // Write a mail to the maildir folder. The data is not encoded or compressed in any way.
@@ -102,7 +125,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 
 	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Now().Unix(), time.Now().Nanosecond()/1000, os.Getpid(), <-counter, hostname)
 	tmpname := paths.Join(m.Path, "tmp", basename)
-	file, err := os.Create(tmpname)
+	file, err := os.OpenFile(tmpname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, m.perm)
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +143,22 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 		return "", err
 	}
 
+	err = changeOwner(tmpname, m.uid, m.guid)
+	if err != nil {
+		// don't want to leave files with bad permissions
+		os.Remove(tmpname)
+		return "", err
+	}
+
 	return newname, nil
+}
+
+// changeOwner changes the owner of the path
+func changeOwner(path string, uid, guid int) error {
+	if uid >0 && guid > 0 {
+		return os.Chown(path, uid, guid)
+	}
+	return nil
 }
 
 // Valid (valid = has not to be escaped) chars =
