@@ -82,7 +82,7 @@ func New(path string, create bool) (m *Maildir, err error) {
 }
 
 // Same as New, but ability to control permissions
-func NewWithPermissions(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
+func NewWithPerm(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
 	path = normalizePath(path)
 	return newWithRawPath(path, create, perm, uid, gid)
 }

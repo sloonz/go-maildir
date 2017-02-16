@@ -17,6 +17,10 @@ Represent a folder in a maildir. The root folder is usually the Inbox.
 
 `func New(path string, create bool) (m *Maildir, err os.Error)`
 
+Same as the New function, but with the ability to control permissions
+
+`NewWithPerm(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error)`
+
 Open a maildir. If create is true and the maildir does not exist, create it.
 
 `func (m *Maildir) Child(name string, create bool) (*Maildir, os.Error)`
