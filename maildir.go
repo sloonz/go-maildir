@@ -42,12 +42,18 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 			}
 		})()
 	})
+	// replace directory bits with 07, preserve u+g bits
+	dirPerm := perm
+	if perm>>6 != 07 {
+		dirPerm = os.FileMode(0077 & perm | 0700 )
+	}
+
 
 	// Create if needed
 	_, err = os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) && create {
-			err = os.MkdirAll(path, perm)
+			err = os.MkdirAll(path, dirPerm)
 			if err != nil {
 				return nil, err
 			}
@@ -57,7 +63,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 			}
 			for _, subdir := range []string{"tmp", "cur", "new"} {
 				ps := paths.Join(path, subdir)
-				err = os.Mkdir(ps, perm)
+				err = os.Mkdir(ps, dirPerm)
 				if err != nil {
 					return nil, err
 				}
@@ -135,6 +141,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 		os.Remove(tmpname)
 		return "", err
 	}
+	file.Sync()
 
 	newname := paths.Join(m.Path, "new", fmt.Sprintf("%v,S=%v", basename, size))
 	err = os.Rename(tmpname, newname)
