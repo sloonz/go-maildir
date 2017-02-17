@@ -33,7 +33,8 @@ type Maildir struct {
 }
 
 const DoNotSetOwner = -1
-const DefaultFilePerm = 0775
+// Default file perms for files. For directories u+x will be added
+const DefaultFilePerm = 0600
 
 func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m *Maildir, err error) {
 	// start counter if needed, preventing race condition
@@ -47,9 +48,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 	})
 	// replace directory bits with 07, preserve u+g bits
 	dirPerm := perm
-	if perm>>6 != 07 {
-		dirPerm = os.FileMode(0077&perm | 0100)
-	}
+	dirPerm = os.FileMode(perm | 0100)
 
 	// Create if needed
 	_, err = os.Stat(path)
