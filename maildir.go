@@ -33,6 +33,7 @@ type Maildir struct {
 }
 
 const DoNotSetOwner = -1
+
 // Default file perms for files. For directories u+x will be added
 const DefaultFilePerm = 0600
 
@@ -154,10 +155,10 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 		return "", err
 	}
 
-	err = changeOwner(tmpname, m.gid, m.uid)
+	err = changeOwner(newname, m.gid, m.uid)
 	if err != nil {
 		// don't want to leave files with bad permissions
-		os.Remove(tmpname)
+		os.Remove(newname)
 		return "", err
 	}
 
