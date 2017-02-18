@@ -18,6 +18,7 @@ import (
 	"time"
 	"unicode/utf16"
 )
+
 var (
 	// a modified form of base64-encoding (no padding with "=" and "," instead of ".")
 	maildirBase64 = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,")
@@ -55,7 +56,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 	})
 	// Directories need an extra x permission so they can be accessed
 	// Set an x for every r in user/group/other
-	dirPerm := os.FileMode(perm | ((perm&0444)>>2))
+	dirPerm := os.FileMode(perm | ((perm & 0444) >> 2))
 
 	// Create if needed
 	_, err = os.Stat(path)
