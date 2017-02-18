@@ -18,6 +18,7 @@ import (
 	"time"
 	"unicode/utf16"
 )
+
 var (
 	// a modified form of base64-encoding (no padding with "=" and "," instead of ".")
 	maildirBase64 = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,")
@@ -55,7 +56,7 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 	})
 	// Directories need an extra x permission so they can be accessed
 	// Set an x for every r in user/group/other
-	dirPerm := os.FileMode(perm | ((perm&0444)>>2))
+	dirPerm := os.FileMode(perm | ((perm & 0444) >> 2))
 
 	// Create if needed
 	_, err = os.Stat(path)
@@ -117,6 +118,12 @@ func normalizePath(p string) string {
 // Get a subfolder of the current folder. If create is true and the folder does not
 // exist, create it.
 func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
+	encodedPath := m.encodeName(name)
+	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid, m.gid)
+}
+
+// encodeName encodes non valid characters according to mailbox folder nameing spec
+func (m *Maildir) encodeName(name string) *bytes.Buffer {
 	var i int
 	encodedPath := bytes.NewBufferString(m.Path + ".")
 	for i = nextInvalidChar(name); i < len(name); i = nextInvalidChar(name) {
@@ -130,7 +137,7 @@ func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
 		}
 	}
 	encodedPath.WriteString(name)
-	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid, m.gid)
+	return encodedPath
 }
 
 // Write a mail to the maildir folder. The data is not encoded or compressed in any way.
