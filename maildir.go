@@ -22,6 +22,7 @@ import (
 var maildirBase64 = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,")
 var counter chan uint
 var counterInit sync.Once
+var pid = os.Getpid()
 
 // Represent a folder in a maildir. The root folder is usually the Inbox.
 type Maildir struct {
@@ -134,7 +135,7 @@ func (m *Maildir) CreateMail(data io.Reader) (filename string, err error) {
 		return "", err
 	}
 
-	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Now().Unix(), time.Now().Nanosecond()/1000, os.Getpid(), <-counter, hostname)
+	basename := fmt.Sprintf("%v.M%vP%v_%v.%v", time.Now().Unix(), time.Now().Nanosecond()/1000, pid, <-counter, hostname)
 	tmpname := paths.Join(m.Path, "tmp", basename)
 	file, err := os.OpenFile(tmpname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, m.perm)
 	if err != nil {
