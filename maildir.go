@@ -117,6 +117,12 @@ func normalizePath(p string) string {
 // Get a subfolder of the current folder. If create is true and the folder does not
 // exist, create it.
 func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
+	encodedPath := m.encodeName(name)
+	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid, m.gid)
+}
+
+// encodeName encodes non valid characters according to mailbox folder nameing spec
+func (m *Maildir) encodeName(name string) *bytes.Buffer {
 	var i int
 	encodedPath := bytes.NewBufferString(m.Path + ".")
 	for i = nextInvalidChar(name); i < len(name); i = nextInvalidChar(name) {
@@ -130,7 +136,7 @@ func (m *Maildir) Child(name string, create bool) (*Maildir, error) {
 		}
 	}
 	encodedPath.WriteString(name)
-	return newWithRawPath(encodedPath.String(), create, m.perm, m.uid, m.gid)
+	return encodedPath
 }
 
 // Write a mail to the maildir folder. The data is not encoded or compressed in any way.
