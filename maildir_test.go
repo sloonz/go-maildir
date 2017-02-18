@@ -80,8 +80,8 @@ func TestCreateWithPerms(t *testing.T) {
 	// check correct permissions
 	if fi, statErr := os.Stat("_obj/Maildir"); statErr != nil {
 		t.Error("could not stat _obj/Maildir", statErr)
-	} else if perm := fi.Mode().Perm(); perm != 0744 {
-		t.Errorf("expected permissions of _obj/Maildir 0744, but got %o", perm)
+	} else if perm := fi.Mode().Perm(); perm != 0755 {
+		t.Errorf("expected permissions of _obj/Maildir 0755, but got %o", perm)
 	}
 
 	// Chek that cur/, tmp/ and new/ have correct perms
@@ -96,8 +96,9 @@ func TestCreateWithPerms(t *testing.T) {
 			continue
 		}
 
-		if perm := fi.Mode().Perm(); perm != 0744 {
-			t.Errorf("expected permissions %v of maildir of _obj/Maildir 0744, but got %o", subdir, perm)
+		// for every r permission for u,g,o it should add an x permission
+		if perm := fi.Mode().Perm(); perm != 0755 {
+			t.Errorf("expected permissions %v of maildir of _obj/Maildir 0755, but got %o", subdir, perm)
 		}
 	}
 }

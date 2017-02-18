@@ -47,9 +47,9 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 			}
 		})()
 	})
-	// replace directory bits with 07, preserve u+g bits
-	dirPerm := perm
-	dirPerm = os.FileMode(perm | 0100)
+	// Directories need an extra x permission so they can be accessed
+	// Set an x for every r in user/group/other
+	dirPerm := os.FileMode(perm | ((perm&0444)>>2))
 
 	// Create if needed
 	_, err = os.Stat(path)
