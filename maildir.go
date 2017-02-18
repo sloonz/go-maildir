@@ -18,11 +18,16 @@ import (
 	"time"
 	"unicode/utf16"
 )
-
-var maildirBase64 = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,")
-var counter chan uint
-var counterInit sync.Once
-var pid = os.Getpid()
+var (
+	// a modified form of base64-encoding (no padding with "=" and "," instead of ".")
+	maildirBase64 = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,")
+	// counter is used to generate unique file names
+	counter chan uint
+	// counterInit ensures that counter is initialized only onced
+	counterInit sync.Once
+	// pid is used to generate unique file names
+	pid = os.Getpid()
+)
 
 // Represent a folder in a maildir. The root folder is usually the Inbox.
 type Maildir struct {
