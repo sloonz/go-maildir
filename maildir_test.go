@@ -190,6 +190,10 @@ func TestWritePerms(t *testing.T) {
 	if err != nil {
 		t.Errorf("Can't create mail: %v", err)
 	}
+	// fullName should have our pid
+	if strings.Index(fullName, fmt.Sprintf("%d_", os.Getpid())) == -1 {
+		t.Error("fullName does not contain the pid, it was:", fullName)
+	}
 
 	// check perms
 	if fi, err := os.Stat(fullName); err != nil {
