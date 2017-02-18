@@ -37,3 +37,16 @@ exist, create it.
 `func (m *Maildir) CreateMail(data io.Reader) (filename string, err os.Error)`
 
 Write a mail to the maildir folder. The data is not encoded or compressed in any way.
+
+# Fuzz test
+
+There's a fuzz test for the encode() function. 
+
+To prepare, run:
+
+`$ go-fuzz-build github.com/flashmob/go-maildir`
+
+then start:
+
+$ go-fuzz -bin=maildir-fuzz.zip -workdir=workdir -procs=8
+
