@@ -40,13 +40,22 @@ Write a mail to the maildir folder. The data is not encoded or compressed in any
 
 # Fuzz test
 
-There's a fuzz test for the encode() function. 
+There's a fuzz test for the encodeName() function. 
 
 To prepare, run:
 
 `$ go-fuzz-build github.com/flashmob/go-maildir`
 
-then start:
+it will take a while...
 
-$ go-fuzz -bin=maildir-fuzz.zip -workdir=workdir -procs=8
+then start like this:
 
+`$ go-fuzz -bin=maildir-fuzz.zip -workdir=workdir -procs=8`
+
+where procs is the number of CPU cores to use. The test
+will run in parallel and it will produce some stats.
+
+Read more about these stats here https://github.com/dvyukov/go-fuzz
+
+After running the test, go to the ./wokrdir and inspect your 
+crashes & commit any new corpus
