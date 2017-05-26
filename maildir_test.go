@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	paths "path"
 	"strings"
 	"testing"
 )
@@ -277,4 +278,33 @@ func TestWrite(t *testing.T) {
 	if path.Base(fullName) != name {
 		t.Errorf("Returned name %#v does not match #%v", path.Base(fullName), name)
 	}
+}
+
+// For folder with no sub folders, it should create the sub-folders
+func TestFolderWithNoSubFolders(t *testing.T) {
+	dir := "_obj/Maildir"
+	if err := os.RemoveAll(dir); err != nil {
+		panic(fmt.Sprintf("Can't remove old test data: %v", err))
+	}
+
+	// create a maildir folder without any sub-dirs
+	dirPerm := os.FileMode(DefaultFilePerm | ((DefaultFilePerm & 0444) >> 2))
+	if err := os.MkdirAll(dir, dirPerm); err != nil {
+		t.Errorf("Can't create maildir: %v", err)
+		return
+	}
+	// this will create the sub-folders
+	maildir, err := New(dir, true)
+	if maildir == nil {
+		t.Errorf("Can't create maildir: %v", err)
+		return
+	}
+	// sub-dirs should be there
+	for _, subdir := range []string{"tmp", "cur", "new"} {
+		ps := paths.Join(dir, subdir)
+		if _, err = os.Stat(ps); os.IsNotExist(err) {
+			t.Error("sub folder does not exist. Expected ", ps)
+		}
+	}
+	defer os.RemoveAll("_obj/Maildir")
 }

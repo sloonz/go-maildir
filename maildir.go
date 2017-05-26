@@ -59,35 +59,42 @@ func newWithRawPath(path string, create bool, perm os.FileMode, uid, gid int) (m
 	dirPerm := os.FileMode(perm | ((perm & 0444) >> 2))
 
 	// Create if needed
-	_, err = os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) && create {
-			err = os.MkdirAll(path, dirPerm)
-			if err != nil {
-				return nil, err
-			}
-			err = changeOwner(path, uid, gid)
-			if err != nil {
-				return nil, err
-			}
-			for _, subdir := range []string{"tmp", "cur", "new"} {
-				ps := paths.Join(path, subdir)
-				err = os.Mkdir(ps, dirPerm)
-				if err != nil {
-					return nil, err
-				}
-				err = changeOwner(ps, uid, gid)
-				if err != nil {
-					return nil, err
-				}
-
-			}
-		} else {
+	if _, err := os.Stat(path); create && err != nil && os.IsNotExist(err) {
+		if err := os.MkdirAll(path, dirPerm); err != nil {
+			return nil, err
+		}
+		if err = changeOwner(path, uid, gid); err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		return nil, err
+	}
+	if create {
+		if err := createSubFolders(path, dirPerm, uid, gid); err != nil {
 			return nil, err
 		}
 	}
 
 	return &Maildir{path, perm, uid, gid}, nil
+}
+
+// createSubFolders creates the tmp/, cur/ and new/ sub-folders folders
+func createSubFolders(path string, dirPerm os.FileMode, uid, gid int) error {
+	// check that the sub-folders exist, if not create them
+	for _, subdir := range []string{"tmp", "cur", "new"} {
+		ps := paths.Join(path, subdir)
+		if _, err := os.Stat(ps); os.IsNotExist(err) {
+			if err := os.Mkdir(ps, dirPerm); err != nil {
+				return err
+			}
+			if err := changeOwner(ps, uid, gid); err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Open a maildir. If create is true and the maildir does not exist, create it.
